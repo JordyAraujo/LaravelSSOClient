@@ -26,7 +26,7 @@ Route::get("/login", function(Request $request) {
         "client_id" => "942b61ea-448a-40d9-bbe7-9cf13ecc0acf",
         "redirect_uri" => "http://127.0.0.1:8080/callback",
         "response_type" => "code",
-        "scope" => "",
+        "scope" => "view-user",
         "state" => $state
     ]);
     return redirect("http://127.0.01:8000/oauth/authorize?" . $query);
@@ -45,5 +45,15 @@ Route::get("/callback", function(Request $request) {
         "redirect_uri" => "http://127.0.0.1:8080/callback",
         "code" => $request->code
     ]);
+    $request->session()->put($response->json());
+    return redirect("/authuser");
+});
+
+Route::get("/authuser", function(Request $request) {
+    $access_token = $request->session()->get("access_token");
+    $response = Http::withHeaders([
+        "Accept" => "application/json",
+        "Authorization" => "Bearer " . $access_token
+    ])->get("http://127.0.0.1:8000/api/user");
     return $response->json();
 });
